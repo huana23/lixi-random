@@ -2,25 +2,47 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vòng quay lì xì 🧧</title>
 
 <style>
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: Arial, sans-serif;
     background: radial-gradient(circle, #ffcc00, #cc0000);
     text-align: center;
     color: #fff;
-    padding-top: 20px;
+    margin: 0;
+    padding: 20px 10px 40px;
 }
 
+/* ===== TIÊU ĐỀ ===== */
+h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-top: 0;
+    opacity: 0.95;
+}
+
+/* ===== CONTAINER ===== */
 .wheel-container {
     position: relative;
-    width: 400px;
-    margin: auto;
-    padding-top: 30px;
+    width: 90vw;
+    max-width: 400px;
+    margin: 20px auto 10px;
 }
 
+/* ===== CANVAS ===== */
 canvas {
+    width: 100%;
+    height: auto;
     background: #fff;
     border-radius: 50%;
 }
@@ -28,11 +50,11 @@ canvas {
 /* ===== MŨI TÊN ===== */
 .arrow {
     position: absolute;
-    top: -10px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
     width: 6px;
-    height: 40px;
+    height: 38px;
     background: red;
     border-radius: 4px;
     z-index: 10;
@@ -51,36 +73,50 @@ canvas {
 
 @keyframes arrowShake {
     0% { transform: translateX(-50%) rotate(0deg); }
-    25% { transform: translateX(-50%) rotate(5deg); }
-    50% { transform: translateX(-50%) rotate(-5deg); }
+    25% { transform: translateX(-50%) rotate(6deg); }
+    50% { transform: translateX(-50%) rotate(-6deg); }
     100% { transform: translateX(-50%) rotate(0deg); }
 }
 
+/* ===== BUTTON ===== */
 button {
     margin-top: 20px;
-    padding: 14px 30px;
+    padding: 14px 28px;
     font-size: 18px;
     border: none;
     border-radius: 30px;
     background: gold;
     font-weight: bold;
     cursor: pointer;
+    width: 90%;
+    max-width: 280px;
 }
 
+button:active {
+    transform: scale(0.97);
+}
+
+/* ===== RESULT ===== */
 #result {
-    margin-top: 20px;
-    font-size: 24px;
+    margin-top: 18px;
+    font-size: 20px;
     font-weight: bold;
     white-space: pre-line;
 }
 
+/* 📱 MOBILE NHỎ */
+@media (max-width: 360px) {
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; }
+    #result { font-size: 18px; }
+}
 </style>
 </head>
 
 <body>
 
 <h1>🧧 QUAY LÌ XÌ TẾT 🧧</h1>
-<h2 class="title" id="username"></h2>
+<h2 id="username"></h2>
 
 <div class="wheel-container">
     <div class="arrow"></div>
@@ -109,15 +145,7 @@ const items = [
     "❌ MẤT LƯỢT"
 ];
 
-const weights = [
-    23, // 10k
-    40, // 20k
-    15, // 50k
-    7,  // 100k
-    0,  // 200k khóa
-    0,  // 500k khóa
-    15  // mất lượt
-];
+const weights = [23, 40, 15, 7, 0, 0, 15];
 
 const trollMessages = {
     "10.000đ": [
@@ -150,7 +178,6 @@ const trollMessages = {
 let angle = 0;
 let spinning = false;
 
-/* ===== VẼ VÒNG ===== */
 function drawWheel() {
     const center = 200;
     const radius = 200;
@@ -177,15 +204,13 @@ function drawWheel() {
     });
 }
 
-/* ===== QUAY ===== */
 function spin() {
     if (spinning) return;
     spinning = true;
-    document.getElementById("result").innerText = "";
+    result.innerText = "";
 
     const targetIndex = getWeightedIndex(weights);
     const slice = 2 * Math.PI / items.length;
-
     const targetAngle = (3 * Math.PI / 2) - (targetIndex + 0.5) * slice;
     const rounds = Math.floor(Math.random() * 3) + 4;
 
@@ -219,7 +244,6 @@ function spin() {
 function getWeightedIndex(weights) {
     const total = weights.reduce((a, b) => a + b, 0);
     let rand = Math.random() * total;
-
     for (let i = 0; i < weights.length; i++) {
         if (rand < weights[i]) return i;
         rand -= weights[i];
@@ -236,12 +260,9 @@ function getRandomTroll(item) {
 function showResult(index) {
     const item = items[index];
     const troll = getRandomTroll(item);
-
-    if (item === "❌ MẤT LƯỢT") {
-        result.innerText = `😆 ${name} bị MẤT LƯỢT!\n${troll}`;
-    } else {
-        result.innerText = `🧧 ${name} nhận được: ${item}\n${troll}`;
-    }
+    result.innerText = item === "❌ MẤT LƯỢT"
+        ? `😆 ${name} bị MẤT LƯỢT!\n${troll}`
+        : `🧧 ${name} nhận được: ${item}\n${troll}`;
 }
 
 drawWheel();
