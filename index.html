@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Vòng quay lì xì 🧧</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: radial-gradient(circle, #ffcc00, #cc0000);
+        text-align: center;
+        color: #fff;
+        padding-top: 20px;
+    }
+
+    canvas {
+        background: #fff;
+        border-radius: 50%;
+        margin-top: 20px;
+    }
+
+    button {
+        margin-top: 20px;
+        padding: 14px 30px;
+        font-size: 18px;
+        border: none;
+        border-radius: 30px;
+        background: gold;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #result {
+        margin-top: 20px;
+        font-size: 26px;
+        font-weight: bold;
+    }
+
+    .arrow {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 30px solid red;
+        margin: auto;
+    }
+</style>
+</head>
+<body>
+
+<h1>🧧 QUAY LÌ XÌ TẾT 🧧</h1>
+<h2 id="username"></h2>
+<div class="arrow"></div>
+<canvas id="wheel" width="400" height="400"></canvas>
+
+<br>
+<button onclick="spin()">QUAY LÌ XÌ 🎉</button>
+
+<div id="result"></div>
+
+<script>
+const canvas = document.getElementById("wheel");
+const ctx = canvas.getContext("2d");
+const name = localStorage.getItem("lixi_name");
+
+if (name) {
+    document.getElementById("username").innerText =
+        "🎊 Lì xì cho: " + name;
+}
+
+
+const items = [
+    "10.000đ",
+    "20.000đ",
+    "50.000đ",
+    "100.000đ",
+    "200.000đ",
+    "500.000đ",
+    "❌ MẤT LƯỢT"
+];
+
+const weights = [
+    23,
+    40, 
+    15,
+    7,
+    0, 
+    0, 
+    15 
+];
+
+const trollMessages = {
+    "10.000đ": [
+        "💸 {name} ơi, tiền ít nhưng lộc nhiều nha 😄",
+        "😌 {name} mở hàng nhẹ nhàng cho vui!",
+        "🤏 {name} à, ít nhưng là lộc đó!"
+    ],
+    "20.000đ": [
+        "🙂 {name} đủ tiền mua trà sữa rồi đó!",
+        "😎 Nhân phẩm của {name} cũng ổn áp nha!",
+        "✨ Lộc nhỏ nhưng hên to nha {name}!"
+    ],
+    "50.000đ": [
+        "😏 {name} hôm nay hên đó!",
+        "🔥 Nhân phẩm của {name} đang lên!",
+        "💰 {name} bắt đầu thấy mùi tiền rồi!"
+    ],
+    "100.000đ": [
+        "😳 {name} ơi, cũng dữ đó!",
+        "🎉 Nhân phẩm {name} lên level rồi!",
+        "🔥 {name} chắc sống tốt lắm!"
+    ],
+    "200.000đ": [
+        "😱 {name} ơi, cái này là BUG!",
+        "🚨 Hệ thống không tin nổi {name}!",
+        "❌ {name} đáng lẽ không được trúng!"
+    ],
+    "500.000đ": [
+        "💀 {name} làm sập hệ thống!",
+        "🔥 Chủ lì xì bỏ chạy vì {name}!",
+        "🚨 Lỗi nghiêm trọng do {name}!"
+    ],
+    "❌ MẤT LƯỢT": [
+        "🤣 {name} quay cho vui thôi chứ ai cho trúng!",
+        "💀 {name} hệ thống không thích bạn!",
+        "😆 {name} tới là thấy thiếu tiền liền!"
+    ]
+};
+
+
+
+let angle = 0;
+let spinning = false;
+
+function drawWheel() {
+    const center = 200;
+    const radius = 200;
+    const slice = 2 * Math.PI / items.length;
+
+    ctx.clearRect(0, 0, 400, 400);
+
+    items.forEach((item, i) => {
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, angle + i * slice, angle + (i + 1) * slice);
+        ctx.fillStyle = `hsl(${i * 360 / items.length}, 80%, 55%)`;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle + (i + 0.5) * slice);
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 18px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(item, radius - 15, 8);
+        ctx.restore();
+    });
+}
+
+function spin() {
+    if (spinning) return;
+    spinning = true;
+
+    const targetIndex = getWeightedIndex(weights);
+    const slice = 2 * Math.PI / items.length;
+
+
+    const targetAngle =
+        (3 * Math.PI / 2) - (targetIndex + 0.5) * slice;
+
+   
+    const rounds = Math.floor(Math.random() * 3) + 4;
+    const startAngle = angle;
+    const endAngle = rounds * 2 * Math.PI + targetAngle;
+
+    let start = null;
+    const duration = 4000;
+
+    function animate(timestamp) {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+        angle = startAngle + (endAngle - startAngle) * easeOut;
+        drawWheel();
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            angle = endAngle;
+            spinning = false;
+            showResultByIndex(targetIndex);
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+
+function getWeightedIndex(weights) {
+    const total = weights.reduce((a, b) => a + b, 0);
+    let rand = Math.random() * total;
+
+    for (let i = 0; i < weights.length; i++) {
+        if (rand < weights[i]) {
+            return i;
+        }
+        rand -= weights[i];
+    }
+    return 0;
+}
+function getRandomTroll(item, name) {
+    const list = trollMessages[item];
+    if (!list || list.length === 0) return "";
+    const msg = list[Math.floor(Math.random() * list.length)];
+    return msg.replaceAll("{name}", name || "Bạn");
+}
+
+
+
+function showResultByIndex(index) {
+    const displayName = name ? name : "Bạn";
+    const item = items[index];
+    const troll = getRandomTroll(item, displayName);
+
+    if (item === "❌ MẤT LƯỢT") {
+        document.getElementById("result").innerText =
+            `😆 ${displayName} bị MẤT LƯỢT!\n${troll}`;
+    } else {
+        document.getElementById("result").innerText =
+            `🧧 ${displayName} nhận được: ${item}\n${troll}`;
+    }
+}
+
+
+
+drawWheel();
+</script>
+
+</body>
+</html>
